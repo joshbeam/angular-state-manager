@@ -1,7 +1,7 @@
 /*
 	angular-state-manager
 
-	v0.1.0
+	v0.2.0
 	
 	Joshua Beam
 	
@@ -33,7 +33,8 @@
 			done: done,
 			subject: subject,
 			model: model,
-			isActive: isActive
+			isActive: isActive,
+			and: and
 		};
 		
 		return exports;	
@@ -56,6 +57,7 @@
 			this.$active = false;
 			this.$model = !!config.model || config.model === '' ? model : {};
 			this.$exclusiveOf = [];
+			this.$auxillary = config.auxillary || {};
 		}
 		
 		function stateGroupGet(stateName) {
@@ -105,18 +107,18 @@
 			if(prop in this) return this[prop];
 		}
 		
-		function start(subject,model) {
+		function start(subject/*,model*/) {
 			this.$active = true;
 			// pass by reference!
 			this.$subject = subject || {};
-			this.$model = !!model || model === '' ? model : {};
+			//this.$model = !!model || model === '' ? model : {};
 									
 			angular.forEach(this.$exclusiveOf,function(state) {
 				state.stop();
 			}.bind(this));
 			
 			if(this.$start !== null) {
-				return this.$start(this.$subject,this.$model);
+				return this.$start(this.$subject/*,this.$model*/);
 			}
 		}
 		
@@ -129,14 +131,16 @@
 			}
 		}
 		
-		function done(aux,keepCurrentSubject) {
+		function done(keepCurrentSubject) {
 			if(this.$done !== null) {
-				this.$done(this.$subject,this.$model,aux);
+				this.$done(this.$subject/*,this.$model*/);
 			}
 			
 			// this *has* to be called second, since it can reset the subject
 			// if keepCurrentSubject is not passed in
-			return this.stop(keepCurrentSubject);
+			this.stop(keepCurrentSubject);
+			
+			return this;
 		}
 		
 		function subject(val) {
@@ -157,6 +161,40 @@
 		
 		function isActive() {
 			return this.$active;	
+		}
+		
+		function and() {
+			/*
+				usage:
+				
+				NOTE: must pass in 'true' to .done() if using $subject in
+				the declaration of the auxillary function
+				
+				vm.states.get('editing').done(true).and('remove', 'sayHi');
+				... .and({remove: 'param'});
+				... .and({remove: ['param1','param2']}, 'sayHi');
+				... .and({remove: 'param'}, {sayHi: 'param'});
+			*/
+			
+			angular.forEach(arguments, function(arg) {
+				if(arg.constructor !== Object) {
+					if(arg in this.$auxillary) {
+						this.$auxillary[arg].call(this,this.$subject);	
+					}
+				} else if (arg.constructor === Object) {
+					for(var fn in arg) {
+						if(arg[fn].constructor !== Array) {
+							// force it to become an array
+							arg[fn] = [arg[fn]];
+						}
+						// add subject as first param
+						arg[fn].unshift(this.$subject);
+						
+						// call the auxillary function with subject and any additional params
+						this.$auxillary[fn].apply(this,arg[fn]);	
+					}
+				}
+			}.bind(this));
 		}
 	}
 })();
