@@ -1,6 +1,6 @@
 #angular-state-manager
 
-**v0.1.0**
+**v0.1.0 pre-release**
 
 Download at: *dist --> state-manager[.min].js*
 
