@@ -33,7 +33,14 @@ describe('factory: stateManager', function() {
 			name: 'assigning'
 		};
 		
-		states = new stateManager.StateGroup(editing,creating,addingComments,editingDescription,assigning);		
+		states = new stateManager.StateGroup(editing,creating,addingComments,editingDescription,assigning);	
+		
+//		var editingState = states('editing');
+//		var creatingState = states('creating');
+//		var addingCommentsState = states('addingComments');
+//		var editingDescriptionState = states('editingDescription');
+//		var assigningState = states('assigning');
+//		console.log(editingState,creatingState,addingCommentsState,editingDescriptionState,assigningState);
 	});
 	
 	it('should return a named state', function() {
@@ -164,5 +171,36 @@ describe('factory: stateManager', function() {
 		
 		expect(editingState.$model.constructor).toBe(Object);
 	});
+	
+	it('should return a list of models',function() {
+		var editingState = states('editing');
+		var creatingState = states('creating');
+		var addingCommentsState = states('addingComments');
+		var editingDescriptionState = states('editingDescription');
+		var assigningState = states('assigning');
+		
+		states().scope({
+			name: 'testScope',
+			models: {
+				helloWorld: function() {
+					return 'hello world!';
+				},
+				foo: 'bar',
+				dude: 'where\'s my car'
+			}			
+		});
+		editingState.start({model: 'vm.models.helloWorld'});
+		creatingState.start({model: 'vm.models.foo'});
+		editingDescriptionState.start({model: 'vm.models.foo'});
+		assigningState.start({model: 'vm.models.dude'});
+		addingCommentsState.start({model: 'vm.models.helloWorld'});
+		
+		expect(states().models().length).toBe(5);
+		expect(states().models()).toContain('vm.models.helloWorld');
+		expect(states().models()).toContain('vm.models.foo');
+		expect(states().models()).toContain('vm.models.dude');
+	});
+	
+	//if states are not exclusive, they cannot have the same model!
 	
 });
