@@ -1,10 +1,8 @@
 /*
 	angular-state-manager
 
-	v0.3.0
-	Changes:	New feature (syntax), backwards incompatible
-	Example:	vm.states('editing');
-				vm.states().getAll();
+	v0.4.0
+	Changes:	New feature (scope), backwards incompatible
 	
 	Joshua Beam
 	
@@ -22,11 +20,17 @@
 		var exports = {
 			StateGroup: StateGroup,
 			State: State
+		},
+			utils = {
+				getStringModelToModel: getStringModelToModel,
+				setStringModelToModel: setStringModelToModel
 		};
 		
 		StateGroup.prototype = {
 			getAll: getAll,
-			exclusive: exclusive
+			exclusive: exclusive,
+			scope: scope,
+			models: models
 		};
 		
 		State.prototype = {
@@ -44,6 +48,7 @@
 		
 		function StateGroup() {
 			this.states = [];
+			this.$scope = {};
 						
 			angular.forEach(arguments,function(state) {
 				this.states.push(new State(state));
@@ -82,9 +87,10 @@
 			// pass by reference is magic
 			this.$subject = config.subject || {};
 			this.$active = false;
-			this.$model = !!config.model || config.model === '' ? model : {};
+			this.$model = '';
 			this.$exclusiveOf = [];
 			this.$auxillary = config.auxillary || {};
+			this.$scope = {};
 		}
 		
 		function getAll() {
@@ -122,28 +128,82 @@
 			}.bind(this));
 		}
 		
+		function scope(scope) {
+			if(!!scope) {
+				this.$scope = scope;
+				angular.forEach(this.states,function(state) {
+					state.$scope = scope;
+				});
+			} else {
+				return this.$scope;	
+			}
+		}
+		
+		function models() {
+			// useful for debugging to see all of the current models being used in the group
+			var models = [];
+			
+			angular.forEach(this.states,function(state) {
+				models.push(state.$model);
+			});
+			
+			return models;
+		}
+		
 		function stateGet(prop) {
 			if(prop in this) return this[prop];
 		}
 		
-		function start(subject/*,model*/) {
+		function start(_config_) {
+			var config = {}, subject = {}, model = {};
+			if(!!_config_) {
+				config = _config_;
+				
+				if('subject' in config) {
+					subject = config.subject;	
+				}
+				
+				if('model' in config) {
+					model = config.model;	
+				}
+			}
+			
+			if(this.isActive()) {
+				this.model({});
+				this.stop();
+			}
+			
+			var resolvedModel = null;
 			this.$active = true;
 			// pass by reference!
-			this.$subject = subject || {};
-			//this.$model = !!model || model === '' ? model : {};
+			this.$subject = subject;
+			// initialize the model to contain the string version of the model
+			// e.g. vm.models.descriptionOfItemBeingEdited
+			this.$model = model;
+
+			if(model.constructor !== Object && typeof model === 'string') {
+				resolvedModel = utils.getStringModelToModel(this, this.$scope, model);
+			}
 									
 			angular.forEach(this.$exclusiveOf,function(state) {
-				state.stop();
+				if(state.isActive()) {
+					state.stop();
+				}
 			}.bind(this));
 			
 			if(this.$start !== null) {
-				return this.$start(this.$subject/*,this.$model*/);
+				return this.$start(this.$subject,resolvedModel);
 			}
 		}
 		
-		function stop(keepCurrentSubject) {
+		function stop(keepCurrentSubject) {			
 			this.$active = false;
 			this.$subject = !!keepCurrentSubject ? this.$subject : {};
+			
+			// reset the model
+			//if(this.model().constructor !== Object && typeof this.model() === 'string') {
+			this.$model = '';
+			//}
 			
 			if(this.$stop !== null) {
 				return this.$stop();
@@ -151,8 +211,10 @@
 		}
 		
 		function done(keepCurrentSubject) {
+			// need to re-resolve the model to see the updates from the scope
+			var resolvedModel = utils.getStringModelToModel(this, this.$scope, this.$model);
 			if(this.$done !== null) {
-				this.$done(this.$subject/*,this.$model*/);
+				this.$done(this.$subject,resolvedModel);
 			}
 			
 			// this *has* to be called second, since it can reset the subject
@@ -171,11 +233,18 @@
 		}
 		
 		function model(val) {
-			if(!!val) {
-				this.$model = val;	
-			} else if (!val) {
-				return this.$model;	
-			}			
+			var resolvedModel;
+			
+			if(typeof this.$model === 'string' && Object.keys(this.$scope).length > 0 && utils.getStringModelToModel(this, this.$scope, this.$model) !== false) {
+				// we can still pass in an empty string if we want
+				if(!!val || val === '') {
+					utils.setStringModelToModel(this, this.$scope, this.$model, val);
+				} else if (!val) {
+					return this.$model;	
+				}
+			} else {
+				return false;	
+			}
 		}
 		
 		function isActive() {
@@ -214,6 +283,55 @@
 					}
 				}
 			}.bind(this));
+		}
+		
+		function getStringModelToModel(thisArg, scope, string) {
+			var m = false, keys;
+			
+			if(typeof string === 'string') {
+				keys = string.split('.');
+				// remove ControllerAs prefix, because we don't need it
+				// the user still uses it though in the string declaration, because it creates a namespace
+				keys.shift();
+
+				angular.forEach(keys,function(key) {
+					if(!!m) {
+						m = m[key];	
+					} else {
+						m = scope[key];	
+					}
+				}.bind(thisArg));
+			}
+			
+			//m will end up being undefined, false, or an object
+			//if it is undefined or false, keep it false
+			//otherwise, return m
+			return !!m ? m : false;	
+		}
+		
+		function setStringModelToModel(thisArg, scope, string, val) {
+			var m, keys, lastKey;
+			
+			if(typeof string === 'string') {
+				keys = string.split('.');
+				// remove ControllerAs prefix, because we don't need it
+				// the user still uses it though in the string declaration, because it creates a namespace
+				keys.shift();
+
+				// get the last key
+				lastKey = keys.pop();
+
+				angular.forEach(keys,function(key) {
+					if(!!m) {
+						m = m[key];	
+					} else {
+						m = scope[key];	
+					}
+				}.bind(thisArg));
+
+				// set the model
+				m[lastKey] = val;
+			}
 		}
 	}
 })();

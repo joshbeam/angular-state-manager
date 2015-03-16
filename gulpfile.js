@@ -5,7 +5,7 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 
 gulp.task('scripts', function() {
-	return gulp.src('src/*.js')
+	return gulp.src(['src/state-manager.module.js','src/state-manager.factory.js'])
 		.pipe(concat('state-manager.js'))
 		.pipe(gulp.dest('dist'))
 		.pipe(rename('state-manager.min.js'))
