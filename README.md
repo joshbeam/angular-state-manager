@@ -2,6 +2,10 @@
 
 **v0.1.0**
 
+Download at: *dist --> state-manager[.min].js*
+
+<hr>
+
 Creates a separate layer for managing states within a controller.
 
 Basic usage:
