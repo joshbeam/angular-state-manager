@@ -50,4 +50,4 @@ vm.models = {
 
 **Last updated 16 March 2015**
 
-The MIT License (MIT) Copyright &copy; 2014 Joshua Beam
+The MIT License (MIT) Copyright &copy; 2015 Joshua Beam
