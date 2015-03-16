@@ -34,7 +34,7 @@ var editing = {
 };
 
 var addingComments = {
-	name: 'editing',
+	name: 'addingComments',
 	start: function(subject) {
 		vm.models.commentsForItemBeingEdited = '';
 	},
