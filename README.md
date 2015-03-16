@@ -1,8 +1,12 @@
 #angular-state-manager
 
-**v0.2.0 pre-release**
+**v0.3.0 pre-release**
 
-Download at: *dist --> state-manager[.min].js*
+**Download at:** *dist --> state-manager[.min].js*
+
+**Dependencies:** AngularJS
+
+**Browser support:** IE9+, all other modern browsers
 
 <hr>
 
@@ -11,11 +15,11 @@ Creates a separate layer for managing states within a controller.
 Basic usage:
 ```html
 <!-- index.html -->
-<div ng-controller="MainController as vm" ng-repeat="item in vm.items" ng-click="vm.states.get('editing').start(item)">{{item.name}}</div>
+<div ng-controller="MainController as vm" ng-repeat="item in vm.items" ng-click="vm.states('editing').start(item)">{{item.name}}</div>
 
-<input type="text" ng-model="vm.models.commentsForItemBeingEdited" ng-show="vm.states.get('editing').isActive()">
-<button ng-click="vm.states.get('editing').done()">Save</button>
-<button ng-click="vm.states.get('editing').stop()">Cancel</button>
+<input type="text" ng-model="vm.models.commentsForItemBeingEdited" ng-show="vm.states('editing').isActive()">
+<button ng-click="vm.states('editing').done()">Save</button>
+<button ng-click="vm.states('editing').stop()">Cancel</button>
 ```
 
 ```javascript
