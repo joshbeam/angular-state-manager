@@ -1,5 +1,5 @@
 describe('factory: stateManager', function() {
-	var editing, creating, addingComments, editingDescription, assigning, states;
+	var stateManager, editing, creating, addingComments, editingDescription, assigning, states;
 	
 	beforeEach(module('stateManager'));
 	
@@ -62,8 +62,14 @@ describe('factory: stateManager', function() {
 		var editingDescriptionState = states('editingDescription');
 		var assigningState = states('assigning');
 		
-		states().exclusive('editing','creating');
-		states().exclusive('addingComments','editingDescription','assigning');
+		states().config(function() {
+			var group1 = ['editing','creating'];
+			var group2 = ['addingComments','editingDescription','assigning'];
+			
+			return {
+				exclusive: [group1,group2]
+			};
+		});
 		
 		expect(editingState.$exclusiveOf.length).toBe(1);
 		expect(editingState.$exclusiveOf[0].$name).toBe('creating');
@@ -81,8 +87,14 @@ describe('factory: stateManager', function() {
 		var addingCommentsState = states('addingComments');
 		var editingDescriptionState = states('editingDescription');
 		var assigningState = states('assigning');
-		
-		states().exclusive('addingComments','editingDescription','assigning');
+				
+		states().config(function() {
+			var group = ['addingComments','editingDescription','assigning'];
+			
+			return {
+				exclusive: group
+			};
+		});
 		
 		addingCommentsState.start();
 		editingDescriptionState.start();
@@ -95,8 +107,12 @@ describe('factory: stateManager', function() {
 		var editingState = states('editing');
 		var creatingState = states('creating');
 		
-		states().scope({
-			name: 'testScope'
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope'	
+				}
+			};
 		});
 		
 		expect(editingState.$scope).toBe(states().$scope);
@@ -108,13 +124,17 @@ describe('factory: stateManager', function() {
 		var creatingState = states('creating');
 		
 		// vm
-		states().scope({
-			name: 'testScope',
-			models: {
-				helloWorld: function() {
-					return 'hello world!';	
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope',
+					models: {
+						helloWorld: function() {
+							return 'hello world!';	
+						}
+					}					
 				}
-			}
+			};
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
@@ -134,20 +154,28 @@ describe('factory: stateManager', function() {
 		editingState.start({model: 'vm.models.helloWorld'});
 		expect(editingState.model('')).toBe(false);
 		
-		states().scope({
-			name: 'testScope'
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope'	
+				}
+			};
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
 		expect(editingState.model('')).toBe(false);
 		
-		states().scope({
-			name: 'testScope',
-			models: {
-				helloWorld: function() {
-					return 'hello world!';	
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope',
+					models: {
+						helloWorld: function() {
+							return 'hello world!';	
+						}
+					}					
 				}
-			}			
+			};
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
@@ -156,14 +184,18 @@ describe('factory: stateManager', function() {
 	
 	it('should stop a state and reset the state\'s model before the state starts again',function() {
 		var editingState = states('editing');
-		
-		states().scope({
-			name: 'testScope',
-			models: {
-				helloWorld: function() {
-					return 'hello world!';	
+
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope',
+					models: {
+						helloWorld: function() {
+							return 'hello world!';	
+						}
+					}					
 				}
-			}			
+			};
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
@@ -179,16 +211,21 @@ describe('factory: stateManager', function() {
 		var editingDescriptionState = states('editingDescription');
 		var assigningState = states('assigning');
 		
-		states().scope({
-			name: 'testScope',
-			models: {
-				helloWorld: function() {
-					return 'hello world!';
-				},
-				foo: 'bar',
-				dude: 'where\'s my car'
-			}			
+		states().config(function() {
+			return {
+				scope: {
+					name: 'testScope',
+					models: {
+						helloWorld: function() {
+							return 'hello world!';
+						},
+						foo: 'bar',
+						dude: 'where\'s my car'
+					}						
+				}
+			};
 		});
+		
 		editingState.start({model: 'vm.models.helloWorld'});
 		creatingState.start({model: 'vm.models.foo'});
 		editingDescriptionState.start({model: 'vm.models.foo'});
