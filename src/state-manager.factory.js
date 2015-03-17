@@ -1,8 +1,10 @@
 /*
 	angular-state-manager
 
-	v0.5.1
-	Changes:	New feature (config), backwards incompatible
+	v0.6.0
+	Changes:	Syntax change (in .stop() and .done()), backwards incompatible
+				Fixed bugs
+				Added some error checking
 	
 	Joshua Beam
 	
@@ -251,32 +253,93 @@
 			}
 		}
 		
-		function stop(keepCurrentSubject) {
+		function stop(config) {
 			/*jshint validthis: true */
+			/*
+				config: 
+				
+					{
+						keepSubject: {true} | {false} [default: false]
+					}
+			*/
 			this.$active = false;
-			this.$subject = !!keepCurrentSubject ? this.$subject : {};
+			
+			// config is always passed in by default (from the .done() method)
+			// still use error checking just in case
+			if(!!config) {
+				if('keepSubject' in config) {
+					this.$subject = config.keepSubject === true ? this.$subject : {};
+				}
+			}
 			
 			// reset the model
-			//if(this.model().constructor !== Object && typeof this.model() === 'string') {
+			this.model('');
 			this.$model = '';
-			//}
 			
 			if(this.$stop !== null) {
 				return this.$stop();
 			}
 		}
 		
-		function done(keepCurrentSubject) {
+		function done(config) {
 			/*jshint validthis: true */
+			/*
+				config:
+				
+					{
+						keepSubject: {true} | {false} [default: false]
+						stop: {true} | {false} [default: true]
+						keepModel: {true} | {false} [default: false]
+					}
+			*/
+			var keepSubject = false, keepModel = false, runStop = true;
+			
+			if(!!config) {
+				if('keepSubject' in config) {
+					if(typeof config.keepSubject === 'boolean') {
+						keepSubject = config.keepSubject;
+					} else {
+						throw new TypeError('keepSubject must contain a boolean value');
+					}
+				}
+				
+				if('stop' in config) {
+					if(typeof config.stop === 'boolean') {
+						runStop = config.stop;
+					} else {
+						throw new TypeError('stop must contain a boolean value');	
+					}
+				}
+				
+				if('keepModel' in config) {
+					if(typeof config.keepModel === 'boolean') {
+						keepModel = config.keepModel;
+					} else {
+						throw new TypeError('keepModel must contain a boolean value');	
+					}
+				}
+			}
+						
 			// need to re-resolve the model to see the updates from the scope
 			var resolvedModel = utils.getStringModelToModel(this, this.$scope, this.$model);
+			
 			if(this.$done !== null) {
 				this.$done(this.$subject,resolvedModel);
 			}
 			
+			// [default]
+			if(keepModel === false) {
+				this.model('');
+			}
+			
 			// this *has* to be called second, since it can reset the subject
 			// if keepCurrentSubject is not passed in
-			this.stop(keepCurrentSubject);
+			// [default]
+			if(runStop === true) {
+				this.stop({
+					keepSubject: keepSubject
+				});
+			}
 			
 			return this;
 		}
@@ -373,11 +436,16 @@
 		function setStringModelToModel(scope, string, val) {
 			var m = scope, keys, prevObject;
 			
+			// has to start with $scope.models, or vm.models, or whatever
+			
 			if(typeof string === 'string') {
 				keys = string.split('.');
 				// remove ControllerAs prefix, because we don't need it
 				// the user still uses it though in the string declaration, because it creates a namespace
 				keys.shift();
+				if(keys.length <2) {
+					throw new SyntaxError('A model should be prefixed with [scope].models');	
+				}
 
 				for(var i = 0; i<keys.length; i++) {
 					if(i === 0) {

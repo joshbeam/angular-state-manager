@@ -1,6 +1,6 @@
 #angular-state-manager
 
-**v0.5.1 pre-release**
+**v0.6.0 pre-release**
 
 **Download at:** *dist --> state-manager[.min].js*
 
@@ -62,6 +62,6 @@ vm.states = new stateManager.StateGroup(editing,addingComments);
 
 <hr>
 
-**Last updated 16 March 2015**
+**Last updated 17 March 2015**
 
 The MIT License (MIT) Copyright &copy; 2015 Joshua Beam
