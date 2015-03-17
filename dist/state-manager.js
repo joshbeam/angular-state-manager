@@ -1,13 +1,13 @@
-;(function() {
+;(function(angular) {
 	'use strict';
 	
 	angular.module('stateManager',[]);
-})();
+})(angular);
 /*
 	angular-state-manager
 
-	v0.4.0
-	Changes:	New feature (scope), backwards incompatible
+	v0.5.1
+	Changes:	New feature (config), backwards incompatible
 	
 	Joshua Beam
 	
@@ -15,7 +15,7 @@
 	
 	(MIT) License
 */
-;(function() {
+;(function(angular) {
 	'use strict';
 	
 	angular.module('stateManager')
@@ -33,9 +33,8 @@
 		
 		StateGroup.prototype = {
 			getAll: getAll,
-			exclusive: exclusive,
-			scope: scope,
-			models: models
+			models: models,
+			config: config
 		};
 		
 		State.prototype = {
@@ -99,52 +98,106 @@
 		}
 		
 		function getAll() {
+			/*jshint validthis: true */
 			return this.states;	
 		}
 		
-		function exclusive() {
-			// try to make this cleaner
-			var stateNames = Array.prototype.slice.call(arguments);	
+		function config(_config_) {
+			/*jshint validthis: true */
+			/*
+				pass in something like this:
+				
+				return {
+					scope: someScopeObject,
+					exclusive: {
+						group: ['state1','state2','state3'],
+						group: ['state4','stat5']
+						// ...
+					}
+				}
+			*/
+			var config, countOfArrays = 0, type;
 			
-			// e.g. stateNames === ['addingComments','editingDescription','assigning']
-			angular.forEach(stateNames, function(name) {
+			if(!!_config_ && _config_.constructor === Function) {
+				config = _config_();
+				if('scope' in config) {
+					scope.call(this, config.scope);	
+				}
 				
-				// get the currently looped State
-				// e.g. 'addingComments'
-				var current = this.states.filter(function(state) {
-					return state.$name === name;
-				})[0];
-				
-				// create a new array of names that doesn't contain the currently looped State's name
-				// e.g. ['editingDescription','assigning']
-				var exclusiveOf = stateNames.filter(function(stateName) {
-					return stateName !== current.$name;
-				});
-				
-				// in the currently looped State's $exclusiveOf array,
-				// push all the other State objects
-				// e.g. $exclusiveOf === [State, State]
-				angular.forEach(exclusiveOf, function(stateName) {
-					current.$exclusiveOf.push(this.states.filter(function(state) {
-						return state.$name === stateName;
-					})[0]);
+				if('exclusive' in config) {
+					if(config.exclusive.constructor === Array) {
+						// [[],[]] or []
+						angular.forEach(config.exclusive,function(obj) {
+							if(obj.constructor === Array) {
+								type = 'array';
+								countOfArrays++;	
+							} else if(typeof obj === 'string') {
+								type = 'string';	
+							}
+						}.bind(this));
+						
+						// if [[],[]], and all are arrays
+						if(countOfArrays === config.exclusive.length && type === 'array') {
+							angular.forEach(config.exclusive,function(arrayOfStateNames) {
+								exclusive.apply(this,arrayOfStateNames);
+							}.bind(this));
+							
+							// if ['stateName','stateName']
+						} else if(type === 'string') {
+							exclusive.apply(this,config.exclusive);
+						}
+					}
+				}
+			}
+			
+			///////////
+			
+			function scope(scope) {
+				/*jshint validthis: true */
+				if(!!scope) {
+					this.$scope = scope;
+					angular.forEach(this.states,function(state) {
+						state.$scope = scope;
+					});
+				} else {
+					return this.$scope;	
+				}
+			}	
+			
+			function exclusive() {
+				// try to make this cleaner
+				var stateNames = Array.prototype.slice.call(arguments);	
+
+				// e.g. stateNames === ['addingComments','editingDescription','assigning']
+				angular.forEach(stateNames, function(name) {
+
+					// get the currently looped State
+					// e.g. 'addingComments'
+					var current = this.states.filter(function(state) {
+						return state.$name === name;
+					})[0];
+
+					// create a new array of names that doesn't contain the currently looped State's name
+					// e.g. ['editingDescription','assigning']
+					var exclusiveOf = stateNames.filter(function(stateName) {
+						return stateName !== current.$name;
+					});
+
+					// in the currently looped State's $exclusiveOf array,
+					// push all the other State objects
+					// e.g. $exclusiveOf === [State, State]
+					angular.forEach(exclusiveOf, function(stateName) {
+						current.$exclusiveOf.push(this.states.filter(function(state) {
+							return state.$name === stateName;
+						})[0]);
+					}.bind(this));
+
 				}.bind(this));
-				
-			}.bind(this));
-		}
-		
-		function scope(scope) {
-			if(!!scope) {
-				this.$scope = scope;
-				angular.forEach(this.states,function(state) {
-					state.$scope = scope;
-				});
-			} else {
-				return this.$scope;	
 			}
 		}
 		
 		function models() {
+			/*jshint validthis: true */
 			// useful for debugging to see all of the current models being used in the group
 			var models = [];
 			
@@ -156,10 +209,12 @@
 		}
 		
 		function stateGet(prop) {
+			/*jshint validthis: true */
 			if(prop in this) return this[prop];
 		}
 		
 		function start(_config_) {
+			/*jshint validthis: true */
 			var config = {}, subject = {}, model = {};
 			if(!!_config_) {
 				config = _config_;
@@ -201,7 +256,8 @@
 			}
 		}
 		
-		function stop(keepCurrentSubject) {			
+		function stop(keepCurrentSubject) {
+			/*jshint validthis: true */
 			this.$active = false;
 			this.$subject = !!keepCurrentSubject ? this.$subject : {};
 			
@@ -216,6 +272,7 @@
 		}
 		
 		function done(keepCurrentSubject) {
+			/*jshint validthis: true */
 			// need to re-resolve the model to see the updates from the scope
 			var resolvedModel = utils.getStringModelToModel(this, this.$scope, this.$model);
 			if(this.$done !== null) {
@@ -230,6 +287,7 @@
 		}
 		
 		function subject(val) {
+			/*jshint validthis: true */
 			if(!!val) {
 				this.$subject = val;	
 			} else if (!val) {
@@ -238,25 +296,28 @@
 		}
 		
 		function model(val) {
+			/*jshint validthis: true */
 			var resolvedModel;
 			
-			if(typeof this.$model === 'string' && Object.keys(this.$scope).length > 0 && utils.getStringModelToModel(this, this.$scope, this.$model) !== false) {
-				// we can still pass in an empty string if we want
-				if(!!val || val === '') {
-					utils.setStringModelToModel(this, this.$scope, this.$model, val);
+			if(!!val || val === '') {
+				if(typeof this.$model === 'string' && Object.keys(this.$scope).length > 0) {
+					utils.setStringModelToModel(this.$scope, this.$model, val);
+					return true;
 				} else if (!val) {
-					return this.$model;	
-				}
+					return false;	
+				}			
 			} else {
-				return false;	
+				return this.$model;
 			}
 		}
 		
 		function isActive() {
+			/*jshint validthis: true */
 			return this.$active;	
 		}
 		
 		function and() {
+			/*jshint validthis: true */
 			/*
 				usage:
 				
@@ -314,8 +375,8 @@
 			return !!m ? m : false;	
 		}
 		
-		function setStringModelToModel(thisArg, scope, string, val) {
-			var m, keys, lastKey;
+		function setStringModelToModel(scope, string, val) {
+			var m = scope, keys, prevObject;
 			
 			if(typeof string === 'string') {
 				keys = string.split('.');
@@ -323,20 +384,22 @@
 				// the user still uses it though in the string declaration, because it creates a namespace
 				keys.shift();
 
-				// get the last key
-				lastKey = keys.pop();
-
-				angular.forEach(keys,function(key) {
-					if(!!m) {
-						m = m[key];	
-					} else {
-						m = scope[key];	
+				for(var i = 0; i<keys.length; i++) {
+					if(i === 0) {
+						m[keys[0]] = {};
+						prevObject = m[keys[0]];
 					}
-				}.bind(thisArg));
-
-				// set the model
-				m[lastKey] = val;
+					
+					if(i > 0 && i < keys.length - 1) {
+						prevObject[keys[i]] = {};
+						prevObject = prevObject[keys[i]];
+					}
+					
+					if(i === keys.length - 1) {
+						prevObject[keys[i]] = val;
+					}
+				}
 			}
 		}
 	}
-})();
+})(angular);

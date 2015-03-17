@@ -145,7 +145,7 @@ describe('factory: stateManager', function() {
 		
 	});
 	
-	it('should not run .model() unless there is a $model string, valid $scope, and a valid $scope model object',function() {
+	it('should not run .model() unless there is a $model string and valid $scope',function() {
 		var editingState = states('editing');
 		
 		editingState.start();
@@ -163,7 +163,7 @@ describe('factory: stateManager', function() {
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
-		expect(editingState.model('')).toBe(false);
+		expect(editingState.model('')).toBe(true);
 		
 		states().config(function() {
 			return {
@@ -179,7 +179,7 @@ describe('factory: stateManager', function() {
 		});
 		
 		editingState.start({model: 'vm.models.helloWorld'});
-		expect(editingState.model('')).not.toBe(false);
+		expect(editingState.model('')).toBe(true);
 	});
 	
 	it('should stop a state and reset the state\'s model before the state starts again',function() {

@@ -1,7 +1,7 @@
 /*
 	angular-state-manager
 
-	v0.5.0
+	v0.5.1
 	Changes:	New feature (config), backwards incompatible
 	
 	Joshua Beam
@@ -294,15 +294,15 @@
 			/*jshint validthis: true */
 			var resolvedModel;
 			
-			if(typeof this.$model === 'string' && Object.keys(this.$scope).length > 0 && utils.getStringModelToModel(this, this.$scope, this.$model) !== false) {
-				// we can still pass in an empty string if we want
-				if(!!val || val === '') {
-					utils.setStringModelToModel(this, this.$scope, this.$model, val);
+			if(!!val || val === '') {
+				if(typeof this.$model === 'string' && Object.keys(this.$scope).length > 0) {
+					utils.setStringModelToModel(this.$scope, this.$model, val);
+					return true;
 				} else if (!val) {
-					return this.$model;	
-				}
+					return false;	
+				}			
 			} else {
-				return false;	
+				return this.$model;
 			}
 		}
 		
@@ -370,8 +370,8 @@
 			return !!m ? m : false;	
 		}
 		
-		function setStringModelToModel(thisArg, scope, string, val) {
-			var m, keys, lastKey;
+		function setStringModelToModel(scope, string, val) {
+			var m = scope, keys, prevObject;
 			
 			if(typeof string === 'string') {
 				keys = string.split('.');
@@ -379,19 +379,21 @@
 				// the user still uses it though in the string declaration, because it creates a namespace
 				keys.shift();
 
-				// get the last key
-				lastKey = keys.pop();
-
-				angular.forEach(keys,function(key) {
-					if(!!m) {
-						m = m[key];	
-					} else {
-						m = scope[key];	
+				for(var i = 0; i<keys.length; i++) {
+					if(i === 0) {
+						m[keys[0]] = {};
+						prevObject = m[keys[0]];
 					}
-				}.bind(thisArg));
-
-				// set the model
-				m[lastKey] = val;
+					
+					if(i > 0 && i < keys.length - 1) {
+						prevObject[keys[i]] = {};
+						prevObject = prevObject[keys[i]];
+					}
+					
+					if(i === keys.length - 1) {
+						prevObject[keys[i]] = val;
+					}
+				}
 			}
 		}
 	}
