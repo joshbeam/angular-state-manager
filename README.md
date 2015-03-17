@@ -4,13 +4,15 @@
 
 **Download at:** *dist --> state-manager[.min].js*
 
-**Dependencies:** AngularJS
+**Dependencies:** AngularJS@1.3.14 (not tested in any other version)
 
 **Browser support:** IE9+, all other modern browsers
 
 <hr>
 
 Creates a separate layer for managing states within a controller.
+
+**Tutorials coming soon...**
 
 Basic usage:
 ```html
