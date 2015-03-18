@@ -1,5 +1,5 @@
 describe('stateManager', function() {
-	var stateManager, editing, creating, addingComments, editingDescription, assigning, states;
+	var stateManager, states;
 	
 	beforeEach(module('stateManager'));
 	
@@ -8,32 +8,40 @@ describe('stateManager', function() {
 	}));
 	
 	beforeEach(function() {
-		editing = {
-			name: 'editing'
-		};
+		states = stateManager.group('list');
+				
+		states()
+			.state(function() {
+				return {
+					name: 'editing'	
+				};
+			})
+			.state(function() {
+				return {
+					name: 'creating'	
+				};
+			})
+			.state(function() {
+				return {
+					name: 'addingComments',
+					auxillary: {
+						remove: function(subject) {
+							subject.set('comments','');	
+						}
+					}
+				};			
+			})
+			.state(function() {
+				return {
+					name: 'editingDescription'
+				};
+			})
+			.state(function() {
+				return {
+					name: 'assigning'
+				};
+			});
 		
-		creating = {
-			name: 'creating'
-		};
-		
-		addingComments = {
-			name: 'addingComments',
-			auxillary: {
-				remove: function(subject) {
-					subject.set('comments','');	
-				}
-			}
-		};
-		
-		editingDescription = {
-			name: 'editingDescription'
-		};
-		
-		assigning = {
-			name: 'assigning'
-		};
-		
-		states = new stateManager.StateGroup(editing,creating,addingComments,editingDescription,assigning);	
 	});
 	
 	describe('State',function() {
@@ -42,6 +50,7 @@ describe('stateManager', function() {
 				get, start, stop, done, subject, model, isActive, and
 			*/
 			describe('.get()',function() {
+				//console.log('test1', states);
 				it('should return the property of the string passed in, if the property exists, or return undefined',function() {
 					expect(states('editing').get('$name')).toBe('editing');
 					expect(states('editing').get('name')).toBeUndefined();
@@ -49,9 +58,18 @@ describe('stateManager', function() {
 			});
 
 			describe('.start()',function() {
+				beforeEach(function() {
+					spyOn(states('editing'), '$stop');
+				});
+				
 				it('should stop the state if it is currently active',function() {
-					//states('editing').start();
-					//expect(states('editing').stop()).not.toHaveBeenCalled();
+					
+					
+					states('editing').start();
+					expect(states('editing').$stop).not.toHaveBeenCalled();
+					
+					states('editing').start();
+					expect(states('editing').$stop).toHaveBeenCalled();
 				});
 
 				it('should set this.$active to true',function() {
@@ -231,7 +249,7 @@ describe('stateManager', function() {
 		});
 		
 		it('should return itself when no parameter is passed to the instance',function() {
-			expect(Object.getPrototypeOf(states())).toBe(stateManager.StateGroup.prototype);
+			expect(Object.getPrototypeOf(states())).toBe(Object.getPrototypeOf(stateManager.group()()));
 		});
 		
 		describe('.prototype',function() {

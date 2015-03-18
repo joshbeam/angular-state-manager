@@ -1,6 +1,6 @@
 #angular-state-manager
 
-**v0.6.3 pre-release**
+**v0.7.0 pre-release**
 
 **Download at:** *dist --> state-manager[.min].js*
 
@@ -38,25 +38,58 @@ Basic usage:
 // main.controller.js
 var vm = this;
 
-var editing = {
-	name: 'editing',
-	start: function(subject) {
-		console.log(subject); // ==> item from ng-repeat
-	}
-};
+// initialize it
+vm.states = stateManager.group('list');
 
-var addingComments = {
-	name: 'addingComments',
-	start: function(subject,model) {
-		// from EXAMPLE 002
-		console.log(subject); // ==> no subject; was never declared in the start function up top
-		console.log(model); // ==> 'Hello World!'
-	},
-	done: function(subject,model) {
-		subject.set('comments',model); // ==> vm.someObject.comments = 'Hello World!'
-	}
-};
-
+// add some states
+vm.states()
+	.state(function(name, states) {
+	
+		console.log(name) // ==> 'list'
+		console.log(states.count()) // ==> 0
+		
+		return {
+			name: 'editing',
+			start: function(subject) {
+				console.log(subject); // ==> item from ng-repeat
+			}		
+		};
+	})
+	.state(function(name, states) {
+		console.log(states.count()) // ==> 1
+		
+		return {
+			name: 'addingComments',
+			start: function(subject,model) {
+				// from EXAMPLE 002
+				console.log(subject); // ==> no subject; was never declared in the start function up top
+				console.log(model); // ==> 'Hello World!'
+			},
+			done: function(subject,model) {
+				subject.set('comments',model); // ==> vm.someObject.comments = 'Hello World!'
+			}		
+		};
+	})
+	.state(function() {
+		return {
+			name: 'editingDescription'
+		};
+	});
+	
+// configure it
+vm.states()
+	.config(function() {
+		var group = ['addingComments','editingDescription'];
+		
+		return {
+			scope: vm,
+			exclusive: group,
+			children: {
+				editing: group
+			}
+		};
+	});
+	
 /*
 	stateManager's model namespace is reserved for stateManager, since it 're-builds' models
 	every time .start() or .done() runs
@@ -76,9 +109,6 @@ var addingComments = {
 	}
 	... this will NOT be overwritten by stateManager
 */
-
-// initialize state manager
-vm.states = new stateManager.StateGroup(editing,addingComments);
 
 // object from EXAMPLE 002
 vm.someObject = {

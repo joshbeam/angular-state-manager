@@ -6,13 +6,17 @@
 /*
 	angular-state-manager
 
-	v0.6.3
-	Changes:	Syntax change (in .stop() and .done()), backwards incompatible
-				Added ability to configure children ('sub-states')
-				Fixed bugs
-				Added some error checking
-				Ability to pass in events to start, stop, and done
-				Lots of error checking
+	v0.7.0
+	Changes:	1. Major syntax change
+					e.g.	vm.states = stateManager.group('groupName');
+					e.g.	vm.states().state(function() {
+								return {
+									// state properties
+								};
+							});
+				2. Added stateManager.getAllGroups
+				3. Added array to hold all groups
+				4. Removed State and StateGroup from exports
 	
 	Joshua Beam
 	
@@ -25,11 +29,13 @@
 	
 	angular.module('stateManager')
 		.factory('stateManager',stateManager);
-		
+
 	function stateManager() {
+		var groups = [];
+		
 		var exports = {
-				StateGroup: StateGroup,
-				State: State
+				group: group,
+				getAllGroups: getAllGroups
 			},
 			utils = {
 				getStringModelToModel: getStringModelToModel,
@@ -48,6 +54,7 @@
 		};
 		
 		StateGroup.prototype = {
+			state: state,
 			getAll: getAll,
 			models: models,
 			config: config
@@ -66,28 +73,27 @@
 		
 		return exports;	
 		
-		function StateGroup() {
+		function group(name) {
+			return new StateGroup(name);
+		}
+		
+		function getAllGroups() {
+			return groups;	
+		}
+		
+		function StateGroup(name) {
 			this.states = [];
+			// this method now makes the states array an 'array-like object'
+			// follows the pattern of using methods to get properties
+			// instead of declaring 'states.length', etc.
+			this.states.count = function() {
+				return this.length;	
+			};
 			this.$scope = {};
-						
-			angular.forEach(arguments,function(state) {
-				this.states.push(new State(state));
-			}.bind(this));
+			this.$name = name;
 			
-			/*
-				usage:
-				
-				vm.states = new stateManager.StateGroup(...);
-				// ==> instantiates a new StateGroup
-				// ==> returns a function
-				
-				vm.states()
-				// ==> returns the StateGroup object
-				// ==> gives access to the prototype e.g. vm.states().getAll(...)
-				
-				vm.states('stateName');
-				// ==> returns the state with the specified name
-			*/
+			groups.push(this);
+			
 			return function(stateName) {
 				if(!!stateName) {
 					return this.states.filter(function(state) {
@@ -110,8 +116,23 @@
 			this.$model = '';
 			this.$exclusiveOf = [];
 			this.$children = [];
-			this.$auxillary = config.auxillary || {};
+			this.$auxillary = config.auxillary || null;
 			this.$scope = {};
+		}
+		
+		function state(_state_) {
+			var state;
+						
+			if(!!_state_ && _state_.constructor === Function) {
+				// pass in the name and states array
+				// gives the user access to check, for example, the number of current states
+				// $name could be used for namespacing
+				state = _state_(this.$name,this.states);	
+			}
+			
+			this.states.push(new State(state));
+			
+			return this;
 		}
 		
 		function getAll() {
