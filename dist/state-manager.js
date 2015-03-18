@@ -6,12 +6,13 @@
 /*
 	angular-state-manager
 
-	v0.6.1
+	v0.6.2
 	Changes:	Syntax change (in .stop() and .done()), backwards incompatible
 				Added ability to configure children ('sub-states')
 				Fixed bugs
 				Added some error checking
 				Ability to pass in events to start, stop, and done
+				Lots of error checking
 	
 	Joshua Beam
 	
@@ -27,12 +28,22 @@
 		
 	function stateManager() {
 		var exports = {
-			StateGroup: StateGroup,
-			State: State
-		},
+				StateGroup: StateGroup,
+				State: State
+			},
 			utils = {
 				getStringModelToModel: getStringModelToModel,
-				setStringModelToModel: setStringModelToModel
+				setStringModelToModel: setStringModelToModel,
+				constants: {
+					errors: {
+						syntax: {
+							ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models'
+						},
+						type: {
+							ILLEGAL_SUBJECT: 'A subject should be of type "object"'	
+						}
+					}
+				}
 		};
 		
 		StateGroup.prototype = {
@@ -127,6 +138,12 @@
 				
 				// _config_() returns an object literal
 				config = _config_();
+				
+				for(var key in config) {
+					if(key !== 'scope' && key !== 'exclusive' && key !== 'children') {
+						throw new SyntaxError(key+' cannot be set in .config()');	
+					}
+				}
 				
 				if('scope' in config) {
 					scope.call(this, config.scope);	
@@ -277,11 +294,23 @@
 				config = _config_;
 				
 				if('subject' in config) {
-					subject = config.subject;	
+					if(typeof config.subject === 'object') {
+						subject = config.subject;
+					} else {
+						throw new TypeError(utils.constants.errors.type.ILLEGAL_SUBJECT);
+					}
 				}
 				
 				if('model' in config) {
-					model = config.model;	
+					if(typeof config.model === 'string') {
+						if(config.model.split('.').length < 3) {
+							throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);
+						} else {
+							model = config.model;
+						}
+					} else {
+						throw new TypeError('$model must be of type "string"');	
+					}
 				}
 				
 				if('event' in config) {
@@ -543,7 +572,7 @@
 				// the user still uses it though in the string declaration, because it creates a namespace
 				keys.shift();
 				if(keys.length <2) {
-					throw new SyntaxError('A model should be prefixed with [scope].models');	
+					throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);	
 				}
 
 				for(var i = 0; i<keys.length; i++) {
