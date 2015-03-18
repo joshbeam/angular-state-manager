@@ -1,10 +1,12 @@
 /*
 	angular-state-manager
 
-	v0.6.0
+	v0.6.1
 	Changes:	Syntax change (in .stop() and .done()), backwards incompatible
+				Added ability to configure children ('sub-states')
 				Fixed bugs
 				Added some error checking
+				Ability to pass in events to start, stop, and done
 	
 	Joshua Beam
 	
@@ -90,6 +92,7 @@
 			this.$active = false;
 			this.$model = '';
 			this.$exclusiveOf = [];
+			this.$children = [];
 			this.$auxillary = config.auxillary || {};
 			this.$scope = {};
 		}
@@ -116,7 +119,10 @@
 			var config, countOfArrays = 0, type;
 			
 			if(!!_config_ && _config_.constructor === Function) {
+				
+				// _config_() returns an object literal
 				config = _config_();
+				
 				if('scope' in config) {
 					scope.call(this, config.scope);	
 				}
@@ -145,6 +151,25 @@
 						}
 					}
 				}
+				
+				if('children' in config) {
+					/*
+						example --
+						
+						children: {
+							editing: ['state1', 'state2']
+						}
+						
+						OR
+						
+						children: {
+							editing: 'state3'
+						}
+					*/
+					children.call(this,config.children);
+				}
+			} else {
+				throw new TypeError('Function object must be passed into StateGroup.prototype.config');	
 			}
 			
 			///////////
@@ -191,6 +216,32 @@
 
 				}.bind(this));
 			}
+			
+			function children(childrenObject) {
+				var parentStateName, parentState, childState;
+				
+				for(parentStateName in childrenObject) {
+					parentState = this.states.filter(filter)[0];
+
+					if(config.children[parentStateName].constructor === Array) {
+						angular.forEach(config.children[parentStateName],pushToChildren.bind(this));
+					} else {
+						pushToChildren(config.children[parentStateName]);	
+					}
+				}
+				
+				function filter(state) {
+					return state.$name === parentStateName;
+				}
+				
+				function pushToChildren(childName) {
+					childState = this.states.filter(function(state) {
+						return state.$name === childName;
+					})[0];
+					
+					parentState.$children.push(childState);
+				}
+			}
 		}
 		
 		function models() {
@@ -212,7 +263,11 @@
 		
 		function start(_config_) {
 			/*jshint validthis: true */
-			var config = {}, subject = {}, model = {};
+			/*
+				event is also passed in, just in case
+				something like e.stopPropagation() needs to happen
+			*/
+			var config = {}, subject = {}, model = {}, event = {};
 			if(!!_config_) {
 				config = _config_;
 				
@@ -222,6 +277,10 @@
 				
 				if('model' in config) {
 					model = config.model;	
+				}
+				
+				if('event' in config) {
+					event = config.event;	
 				}
 			}
 			
@@ -241,15 +300,23 @@
 			if(model.constructor !== Object && typeof model === 'string') {
 				resolvedModel = utils.getStringModelToModel(this, this.$scope, model);
 			}
-									
+			
+			// stop all states that are exclusive of this state
 			angular.forEach(this.$exclusiveOf,function(state) {
 				if(state.isActive()) {
 					state.stop();
 				}
-			}.bind(this));
+			});
+			
+			// 'reset' (stop) all children states
+			angular.forEach(this.$children,function(childState) {
+				if(childState.isActive()) {
+					childState.stop();
+				}
+			});
 			
 			if(this.$start !== null) {
-				return this.$start(this.$subject,resolvedModel);
+				return this.$start(this.$subject,resolvedModel,event);
 			}
 		}
 		
@@ -260,24 +327,45 @@
 				
 					{
 						keepSubject: {true} | {false} [default: false]
+						event: EventObject [default: undefined]
 					}
 			*/
-			this.$active = false;
-			
 			// config is always passed in by default (from the .done() method)
 			// still use error checking just in case
+			var event;
+			
 			if(!!config) {
 				if('keepSubject' in config) {
 					this.$subject = config.keepSubject === true ? this.$subject : {};
 				}
+				
+				if('event' in config) {
+					event = config.event;	
+				}
+			} else {
+				// reset the subject by default
+				this.$subject = {};	
 			}
 			
-			// reset the model
-			this.model('');
-			this.$model = '';
+			// reset the model, only if there was one to begin with
+			// #question
+			// should I rename $model to $modelString? Makes more syntactical sense
+			if(this.$model !== '') {
+				// #question
+				// should i reset the model to '' or {}?
+				// in start, it resets the model to {}
+				this.model('');
+				this.$model = '';
+			}
+			
+			// might as well check... .stop() can be called from controllers,
+			// and if the state isn't active, it doesn't need to run this.$active = false
+			if(this.$active === true) {
+				this.$active = false;
+			}
 			
 			if(this.$stop !== null) {
-				return this.$stop();
+				return this.$stop(event);
 			}
 		}
 		
@@ -290,9 +378,10 @@
 						keepSubject: {true} | {false} [default: false]
 						stop: {true} | {false} [default: true]
 						keepModel: {true} | {false} [default: false]
+						event: EventObject [default: undefined]
 					}
 			*/
-			var keepSubject = false, keepModel = false, runStop = true;
+			var keepSubject = false, keepModel = false, runStop = true, event;
 			
 			if(!!config) {
 				if('keepSubject' in config) {
@@ -318,13 +407,17 @@
 						throw new TypeError('keepModel must contain a boolean value');	
 					}
 				}
+				
+				if('event' in config) {
+					event = config.event;	
+				}
 			}
 						
 			// need to re-resolve the model to see the updates from the scope
 			var resolvedModel = utils.getStringModelToModel(this, this.$scope, this.$model);
 			
 			if(this.$done !== null) {
-				this.$done(this.$subject,resolvedModel);
+				this.$done(this.$subject,resolvedModel,event);
 			}
 			
 			// [default]
@@ -337,7 +430,8 @@
 			// [default]
 			if(runStop === true) {
 				this.stop({
-					keepSubject: keepSubject
+					keepSubject: keepSubject,
+					event: event
 				});
 			}
 			
