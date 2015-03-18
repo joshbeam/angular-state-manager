@@ -38,7 +38,10 @@ describe('stateManager', function() {
 			})
 			.state(function() {
 				return {
-					name: 'assigning'
+					name: 'assigning',
+					done: function() {
+						//test	
+					}
 				};
 			});
 		
@@ -59,17 +62,16 @@ describe('stateManager', function() {
 
 			describe('.start()',function() {
 				beforeEach(function() {
-					spyOn(states('editing'), '$stop');
+					spyOn(states('editing'), 'stop');
 				});
 				
 				it('should stop the state if it is currently active',function() {
-					
-					
 					states('editing').start();
-					expect(states('editing').$stop).not.toHaveBeenCalled();
+					expect(states('editing').stop).not.toHaveBeenCalled();
 					
+					// second time start is called, it runs the $stop function
 					states('editing').start();
-					expect(states('editing').$stop).toHaveBeenCalled();
+					expect(states('editing').stop).toHaveBeenCalled();
 				});
 
 				it('should set this.$active to true',function() {
@@ -92,6 +94,7 @@ describe('stateManager', function() {
 					expect(states('addingComments').isActive()).toBe(true);
 					expect(states('creating').isActive()).toBe(true);
 
+					// this will disable its child states
 					states('editing').start();
 					expect(states('addingComments').isActive()).toBe(false);
 					expect(states('creating').isActive()).toBe(false);
@@ -151,8 +154,17 @@ describe('stateManager', function() {
 							states('editing').start({model: 'vm.hello'});
 						}).toThrowError();
 					});	
+				}); // $model
+
+				
+				describe('$start',function() {
+					it('should be called',function() {
+						spyOn(states('editing'), '$start');
+						states('editing').start();
+						expect(states('editing').$start).toHaveBeenCalled();
+					});
 				});
-			});	
+			});	// .start()
 			
 			describe('.stop()',function() {
 				var subject, model;
@@ -173,6 +185,14 @@ describe('stateManager', function() {
 						});
 					});					
 				}
+				
+				describe('$stop',function() {
+					it('should be called',function() {
+						spyOn(states('editing'), '$stop');
+						states('editing').stop();
+						expect(states('editing').$stop).toHaveBeenCalled();
+					});
+				});
 				
 				describe('$subject',function() {
 					sharedBeforeEach();
@@ -231,6 +251,40 @@ describe('stateManager', function() {
 				
 				// set up a spy to see if $stop is called
 			}); // .stop()
+			
+			describe('.done()',function() {
+				describe('$done',function() {
+					it('should be called if it was set',function() {
+						// JASMINE #bug
+						// sets the function to a spy function, when it's supposed to be null
+//						spyOn(states('editing'),'$done');
+//						states('editing').done();
+//						expect(states('editing').$done).not.toHaveBeenCalled();
+					});
+				});
+				
+				beforeEach(function() {
+					spyOn(states('editing'),'stop');
+				});
+				
+				it('should call .stop() if stop is true',function() {
+					states('editing').start();
+					states('editing').done({stop: true});
+					expect(states('editing').stop).toHaveBeenCalled();
+				});
+				
+				it('should call .stop() if no stop paramter is passed',function() {					
+					states('editing').start();
+					states('editing').done();
+					expect(states('editing').stop).toHaveBeenCalled();					
+				});
+				
+				it('should not call .stop() if false is passed in as the stop param',function() {
+					states('editing').start();
+					states('editing').done({stop: false});
+					expect(states('editing').stop).not.toHaveBeenCalled();
+				});
+			});
 		}); // .prototype
 
 	}); // State

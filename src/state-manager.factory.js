@@ -432,6 +432,9 @@
 						event: EventObject [default: undefined]
 					}
 			*/
+			// #question
+			// should i be able to call this if it isn't active?
+			
 			var keepSubject = false, keepModel = false, runStop = true, event;
 			
 			if(!!config) {
@@ -472,6 +475,7 @@
 			}
 			
 			// [default]
+			// .stop() also resets the model...
 			if(keepModel === false) {
 				this.model('');
 			}
@@ -479,6 +483,7 @@
 			// this *has* to be called second, since it can reset the subject
 			// if keepCurrentSubject is not passed in
 			// [default]
+			
 			if(runStop === true) {
 				this.stop({
 					keepSubject: keepSubject,
