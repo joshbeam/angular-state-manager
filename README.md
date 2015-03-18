@@ -55,6 +55,26 @@ var addingComments = {
 	}
 };
 
+/*
+	stateManager's model namespace is reserved for stateManager, since it 're-builds' models
+	every time .start() or .done() runs
+	
+	For example, if using this namespace for your stateManager models:
+	vm.models.someModel // ==> 'foo'
+	
+	Then, DO NOT create an object in the controller like this:
+	vm.models = {
+		anotherModel: 'bar'
+	}
+	... because vm.models.anotherModel will be overwritten
+	
+	Instead, use a separate namespace in the controller, such as:
+	vm.someNameSpace = {
+		anotherModel: 'bar'
+	}
+	... this will NOT be overwritten by stateManager
+*/
+
 vm.someObject = {
 	comments: '';
 }
