@@ -88,6 +88,14 @@ vm.someObject = {
 
 <hr>
 
+Semantic Versioning<br>
+X.Y.Z
+
+If X = 0, then Y = new backwards incompatible API, Z = backwards compatible update or bug fix<br>
+If X > 0, then X = new backwards incompatible API, Y = new backwards compatible API feature, Z = bug fix
+
+<hr>
+
 **Last updated 18 March 2015**
 
 The MIT License (MIT) Copyright &copy; 2015 Joshua Beam
