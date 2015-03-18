@@ -88,6 +88,6 @@ vm.someObject = {
 
 <hr>
 
-**Last updated 17 March 2015**
+**Last updated 18 March 2015**
 
 The MIT License (MIT) Copyright &copy; 2015 Joshua Beam
