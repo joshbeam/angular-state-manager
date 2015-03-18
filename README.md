@@ -77,11 +77,13 @@ var addingComments = {
 	... this will NOT be overwritten by stateManager
 */
 
+// initialize state manager
+vm.states = new stateManager.StateGroup(editing,addingComments);
+
+// object from EXAMPLE 002
 vm.someObject = {
 	comments: '';
 }
-
-vm.states = new stateManager.StateGroup(editing,addingComments);
 ```
 
 <hr>
