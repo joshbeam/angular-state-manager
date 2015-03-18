@@ -6,7 +6,7 @@
 /*
 	angular-state-manager
 
-	v0.6.2
+	v0.6.3
 	Changes:	Syntax change (in .stop() and .done()), backwards incompatible
 				Added ability to configure children ('sub-states')
 				Fixed bugs
@@ -40,7 +40,8 @@
 							ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models'
 						},
 						type: {
-							ILLEGAL_SUBJECT: 'A subject should be of type "object"'	
+							ILLEGAL_SUBJECT: 'A subject should be of type "object"'	,
+							ILLEGAL_CONFIG_BOOL: 'must contain a boolean value'
 						}
 					}
 				}
@@ -422,7 +423,7 @@
 					if(typeof config.keepSubject === 'boolean') {
 						keepSubject = config.keepSubject;
 					} else {
-						throw new TypeError('keepSubject must contain a boolean value');
+						throw new TypeError('keepSubject '+utils.constants.errors.type.ILLEGAL_CONFIG_BOOL);
 					}
 				}
 				
@@ -430,7 +431,7 @@
 					if(typeof config.stop === 'boolean') {
 						runStop = config.stop;
 					} else {
-						throw new TypeError('stop must contain a boolean value');	
+						throw new TypeError('stop '+utils.constants.errors.type.ILLEGAL_CONFIG_BOOL);	
 					}
 				}
 				
@@ -438,7 +439,7 @@
 					if(typeof config.keepModel === 'boolean') {
 						keepModel = config.keepModel;
 					} else {
-						throw new TypeError('keepModel must contain a boolean value');	
+						throw new TypeError('keepModel '+utils.constants.errors.type.ILLEGAL_CONFIG_BOOL);	
 					}
 				}
 				

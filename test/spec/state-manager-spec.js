@@ -143,6 +143,16 @@ describe('stateManager', function() {
 					beforeEach(function() {
 						subject = { name: 'Josh' };
 						model = 'vm.models.someModel';
+						
+						states().config(function() {
+							return {
+								scope: {
+									models: {
+										someModel: 'hello world'
+									}
+								}	
+							};
+						});
 					});					
 				}
 				
@@ -177,6 +187,31 @@ describe('stateManager', function() {
 						expect(states('editing').model()).toBe('');
 					});
 				});
+				
+				describe('model object',function() {
+					sharedBeforeEach();
+					
+					it('should be reset to an empty string',function() {
+						states('editing').start({model: model});
+						states('editing').model('hello world');
+						expect(states().$scope.models.someModel).toBe('hello world');
+						states('editing').stop();
+						expect(states().$scope.models.someModel).toBe('');
+					});
+				});
+				
+				describe('$active',function() {
+					sharedBeforeEach();
+					
+					it('should be set to false',function() {
+						states('editing').start();
+						expect(states('editing').isActive()).toBe(true);
+						states('editing').stop();
+						expect(states('editing').isActive()).toBe(false);
+					});
+				});
+				
+				// set up a spy to see if $stop is called
 			}); // .stop()
 		}); // .prototype
 
@@ -196,7 +231,7 @@ describe('stateManager', function() {
 		});
 		
 		it('should return itself when no parameter is passed to the instance',function() {
-			expect(states().__proto__).toBe(stateManager.StateGroup.prototype);
+			expect(Object.getPrototypeOf(states())).toBe(stateManager.StateGroup.prototype);
 		});
 		
 		describe('.prototype',function() {
