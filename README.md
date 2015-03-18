@@ -12,6 +12,8 @@
 
 Creates a separate layer for managing states within a controller.
 
+<a href="https://github.com/joshbeam/Basket">Example app</a> using stateManager (see it <a href="http://joshbeam.github.io/Basket">live</a>)
+
 **Tutorials coming soon...**
 
 Basic usage:
