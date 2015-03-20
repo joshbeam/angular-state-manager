@@ -3,11 +3,13 @@
 	
 	(c) 2015 Joshua Beam
 	
+	github.com/joshbeam
+
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-(function(win) {
+;(function(win) {
 	'use strict';
 
 	var dependencies = {};
@@ -668,12 +670,12 @@
 	(c) 2015 Joshua Beam
 	
 	github.com/joshbeam
-	
+
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-(function(dependencies) {
+;(function(dependencies) {
 	'use strict';
 
 	var StateGroup = dependencies.StateGroup;

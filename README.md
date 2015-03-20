@@ -35,7 +35,22 @@ Basic usage:
 ```
 
 ```javascript
+// my.module.js
+// First, add the module as a dependency
+
+angular.module('my',['stateManager']);
+
 // main.controller.js
+// Then, inject the factory (of the same name) into your controller
+main.$inject = ['stateManager'];
+
+angular.module('my').controller('main',main);
+
+function main(stateManager) {
+	// your controller logic
+}
+
+// Then, inside the controller...
 var vm = this;
 
 // initialize it
