@@ -24,8 +24,8 @@ describe('stateManager', function() {
 			.state(function() {
 				return {
 					name: 'addingComments',
-					auxillary: {
-						remove: function(subject) {
+					and: {
+						removeComments: function(subject) {
 							subject.set('comments','');	
 						}
 					}
@@ -58,6 +58,25 @@ describe('stateManager', function() {
 					expect(states('editing').get('$name')).toBe('editing');
 					expect(states('editing').get('name')).toBeUndefined();
 				});			
+			});
+
+			describe('.and()',function() {
+
+				it('should call the function',function() {
+					var subject = {
+						set: function(prop,val) {
+							if(prop in this) {
+								this[prop] = val;
+							}
+						},
+						comments: 'hello'
+					};
+					states('addingComments').start({subject: subject});
+					states('addingComments').done({keepSubject: true}).and('removeComments');
+
+					expect(subject.comments).toBe('');
+				});
+
 			});
 
 			describe('.start()',function() {

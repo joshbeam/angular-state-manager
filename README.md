@@ -1,6 +1,6 @@
 #angular-state-manager
 
-**v0.7.2 pre-release**
+**v0.8.0 pre-release**
 
 **Download at:** *dist --> state-manager[.min].js*
 
@@ -141,6 +141,6 @@ If X > 0, then X = new backwards incompatible API, Y = new backwards compatible 
 
 <hr>
 
-**Last updated 18 March 2015**
+**Last updated 20 March 2015**
 
 The MIT License (MIT) Copyright &copy; 2015 Joshua Beam

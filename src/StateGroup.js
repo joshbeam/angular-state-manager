@@ -36,7 +36,7 @@
 		// stateManager.groups.push(this);
 		
 		return function(stateName) {
-			if(!!stateName) {
+			if(!!stateName && stateName !== '') {
 				return this.states.filter(function(state) {
 					return state.$name === stateName;
 				})[0];	

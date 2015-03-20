@@ -3,18 +3,8 @@
 
 	(c) 2015 Joshua Beam
 
-	v0.7.2
-	Changes:	1. Major syntax change
-					e.g.	vm.states = stateManager.group('groupName');
-					e.g.	vm.states().state(function() {
-								return {
-									// state properties
-								};
-							});
-				2. Added stateManager.getAllGroups
-				3. Added array to hold all groups
-				4. Removed State and StateGroup from exports
-				5. Separated into modules
+	v0.8.0
+	Changes:	1. .auxillary() renamed to .and() to be more consistent
 	
 	github.com/joshbeam
 

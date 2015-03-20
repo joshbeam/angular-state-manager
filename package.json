@@ -1,6 +1,6 @@
 {
   "name": "angular-state-manager",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Manage states in AngularJS",
   "main": "index.js",
   "scripts": {

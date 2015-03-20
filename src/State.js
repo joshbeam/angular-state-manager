@@ -36,7 +36,7 @@
 		this.$model = '';
 		this.$exclusiveOf = [];
 		this.$children = [];
-		this.$auxillary = config.auxillary || null;
+		this.$and = config.and || null;
 		this.$scope = {};
 	}
 
@@ -283,10 +283,10 @@
 			... .and({remove: 'param'}, {sayHi: 'param'});
 		*/
 		
-		utils.forEach(arguments, function(arg) {
+		utils.forEach([].slice.call(arguments), function(arg) {
 			if(arg.constructor !== Object) {
-				if(arg in this.$auxillary) {
-					this.$auxillary[arg].call(this,this.$subject);	
+				if(arg in this.$and) {
+					this.$and[arg].call(this,this.$subject);	
 				}
 			} else if (arg.constructor === Object) {
 				for(var fn in arg) {
@@ -298,7 +298,7 @@
 					arg[fn].unshift(this.$subject);
 					
 					// call the auxillary function with subject and any additional params
-					this.$auxillary[fn].apply(this,arg[fn]);	
+					this.$and[fn].apply(this,arg[fn]);	
 				}
 			}
 		}.bind(this));
