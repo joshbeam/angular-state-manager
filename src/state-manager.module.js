@@ -1,7 +1,9 @@
 /*
 	module for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam	
 	
 	joshua.a.beam@gmail.com
 	

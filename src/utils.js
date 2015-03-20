@@ -1,22 +1,27 @@
 /*
-	'utils' for angular-state-manager
+	utils for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(win) {
+;(function(dependencies) {
 	'use strict';
 
 	var utils = {
 		getStringModelToModel: getStringModelToModel,
 		setStringModelToModel: setStringModelToModel,
+		forEach: forEach,
 		constants: {
 			errors: {
 				syntax: {
-					ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models'
+					ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models',
+					ILLEGAL_FUNCTION: 'A Function is required',
+					ILLEGAL_ARRAY: 'An Array is required'
 				},
 				type: {
 					ILLEGAL_SUBJECT: 'A subject should be of type "object"'	,
@@ -35,7 +40,7 @@
 			// the user still uses it though in the string declaration, because it creates a namespace
 			keys.shift();
 
-			angular.forEach(keys,function(key) {
+			forEach(keys,function(key) {
 				if(!!m) {
 					m = m[key];	
 				} else {
@@ -82,5 +87,22 @@
 		}
 	}
 
-	win.utils = utils;
-})(window);
+	function forEach(arr,fn) {
+		var i = 0, len;
+		if(!!arr && arr.constructor === Array) {
+			if(!!fn && fn.constructor === Function) {
+				len = arr.length;
+
+				for(;i<len;i++) {
+					fn.call(arr,arr[i],i);
+				}
+			} else {
+				throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_FUNCTION);
+			}
+		} else {
+			throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_ARRAY);
+		}
+	}
+
+	dependencies.utils = utils;
+})(stateManagerDependencies);

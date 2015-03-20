@@ -1,14 +1,19 @@
 /*
-	'StateGroup' for angular-state-manager
+	StateGroup for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(angular,State,win) {
+;(function(dependencies) {
 	'use strict';
+
+	var utils = dependencies.utils,
+		State = dependencies.State;
 
 	StateGroup.prototype = {
 		state: state,
@@ -95,7 +100,7 @@
 			if('exclusive' in config) {
 				if(config.exclusive.constructor === Array) {
 					// [[],[]] or []
-					angular.forEach(config.exclusive,function(obj) {
+					utils.forEach(config.exclusive,function(obj) {
 						if(obj.constructor === Array) {
 							type = 'array';
 							countOfArrays++;	
@@ -106,7 +111,7 @@
 					
 					// if [[],[]], and all are arrays
 					if(countOfArrays === config.exclusive.length && type === 'array') {
-						angular.forEach(config.exclusive,function(arrayOfStateNames) {
+						utils.forEach(config.exclusive,function(arrayOfStateNames) {
 							exclusive.apply(this,arrayOfStateNames);
 						}.bind(this));
 						
@@ -143,7 +148,7 @@
 			/*jshint validthis: true */
 			if(!!scope) {
 				this.$scope = scope;
-				angular.forEach(this.states,function(state) {
+				utils.forEach(this.states,function(state) {
 					state.$scope = scope;
 				});
 			} else {
@@ -156,7 +161,7 @@
 			var stateNames = Array.prototype.slice.call(arguments);	
 
 			// e.g. stateNames === ['addingComments','editingDescription','assigning']
-			angular.forEach(stateNames, function(name) {
+			utils.forEach(stateNames, function(name) {
 
 				// get the currently looped State
 				// e.g. 'addingComments'
@@ -173,7 +178,7 @@
 				// in the currently looped State's $exclusiveOf array,
 				// push all the other State objects
 				// e.g. $exclusiveOf === [State, State]
-				angular.forEach(exclusiveOf, function(stateName) {
+				utils.forEach(exclusiveOf, function(stateName) {
 					current.$exclusiveOf.push(this.states.filter(function(state) {
 						return state.$name === stateName;
 					})[0]);
@@ -189,7 +194,7 @@
 				parentState = this.states.filter(filter)[0];
 
 				if(config.children[parentStateName].constructor === Array) {
-					angular.forEach(config.children[parentStateName],pushToChildren.bind(this));
+					utils.forEach(config.children[parentStateName],pushToChildren.bind(this));
 				} else {
 					pushToChildren(config.children[parentStateName]);	
 				}
@@ -214,12 +219,12 @@
 		// useful for debugging to see all of the current models being used in the group
 		var models = [];
 		
-		angular.forEach(this.states,function(state) {
+		utils.forEach(this.states,function(state) {
 			models.push(state.$model);
 		});
 		
 		return models;
 	}
 
-	win.StateGroup = StateGroup;
-})(angular,State,window);
+	dependencies.StateGroup = StateGroup;
+})(stateManagerDependencies);

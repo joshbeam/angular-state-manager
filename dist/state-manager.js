@@ -1,22 +1,43 @@
 /*
-	'utils' for angular-state-manager
+	dependencies for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(win) {
+(function(win) {
+	'use strict';
+
+	var dependencies = {};
+
+	win.stateManagerDependencies = dependencies;
+})(window);
+/*
+	utils for angular-state-manager
+	
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
+	
+	joshua.a.beam@gmail.com
+	
+	(MIT) License
+*/
+;(function(dependencies) {
 	'use strict';
 
 	var utils = {
 		getStringModelToModel: getStringModelToModel,
 		setStringModelToModel: setStringModelToModel,
+		forEach: forEach,
 		constants: {
 			errors: {
 				syntax: {
-					ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models'
+					ILLEGAL_MODEL_STRING: 'A model should be prefixed with [scope].models',
+					ILLEGAL_FUNCTION: 'A Function is required',
+					ILLEGAL_ARRAY: 'An Array is required'
 				},
 				type: {
 					ILLEGAL_SUBJECT: 'A subject should be of type "object"'	,
@@ -35,7 +56,7 @@
 			// the user still uses it though in the string declaration, because it creates a namespace
 			keys.shift();
 
-			angular.forEach(keys,function(key) {
+			forEach(keys,function(key) {
 				if(!!m) {
 					m = m[key];	
 				} else {
@@ -82,19 +103,40 @@
 		}
 	}
 
-	win.utils = utils;
-})(window);
+	function forEach(arr,fn) {
+		var i = 0, len;
+		if(!!arr && arr.constructor === Array) {
+			if(!!fn && fn.constructor === Function) {
+				len = arr.length;
+
+				for(;i<len;i++) {
+					fn.call(arr,arr[i],i);
+				}
+			} else {
+				throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_FUNCTION);
+			}
+		} else {
+			throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_ARRAY);
+		}
+	}
+
+	dependencies.utils = utils;
+})(stateManagerDependencies);
 /*
-	'State' for angular-state-manager
+	State for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(angular,utils,win) {
+;(function(dependencies) {
 	'use strict';
+
+	var utils = dependencies.utils;
 
 	State.prototype = {
 		get: stateGet,
@@ -180,14 +222,14 @@
 		}
 		
 		// stop all states that are exclusive of this state
-		angular.forEach(this.$exclusiveOf,function(state) {
+		utils.forEach(this.$exclusiveOf,function(state) {
 			if(state.isActive()) {
 				state.stop();
 			}
 		});
 		
 		// 'reset' (stop) all children states
-		angular.forEach(this.$children,function(childState) {
+		utils.forEach(this.$children,function(childState) {
 			if(childState.isActive()) {
 				childState.stop();
 			}
@@ -365,7 +407,7 @@
 			... .and({remove: 'param'}, {sayHi: 'param'});
 		*/
 		
-		angular.forEach(arguments, function(arg) {
+		utils.forEach(arguments, function(arg) {
 			if(arg.constructor !== Object) {
 				if(arg in this.$auxillary) {
 					this.$auxillary[arg].call(this,this.$subject);	
@@ -386,20 +428,25 @@
 		}.bind(this));
 	}
 
-	win.State = State;
+	dependencies.State = State;
 
-})(angular,utils,window);
+})(stateManagerDependencies);
 /*
-	'StateGroup' for angular-state-manager
+	StateGroup for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(angular,State,win) {
+;(function(dependencies) {
 	'use strict';
+
+	var utils = dependencies.utils,
+		State = dependencies.State;
 
 	StateGroup.prototype = {
 		state: state,
@@ -486,7 +533,7 @@
 			if('exclusive' in config) {
 				if(config.exclusive.constructor === Array) {
 					// [[],[]] or []
-					angular.forEach(config.exclusive,function(obj) {
+					utils.forEach(config.exclusive,function(obj) {
 						if(obj.constructor === Array) {
 							type = 'array';
 							countOfArrays++;	
@@ -497,7 +544,7 @@
 					
 					// if [[],[]], and all are arrays
 					if(countOfArrays === config.exclusive.length && type === 'array') {
-						angular.forEach(config.exclusive,function(arrayOfStateNames) {
+						utils.forEach(config.exclusive,function(arrayOfStateNames) {
 							exclusive.apply(this,arrayOfStateNames);
 						}.bind(this));
 						
@@ -534,7 +581,7 @@
 			/*jshint validthis: true */
 			if(!!scope) {
 				this.$scope = scope;
-				angular.forEach(this.states,function(state) {
+				utils.forEach(this.states,function(state) {
 					state.$scope = scope;
 				});
 			} else {
@@ -547,7 +594,7 @@
 			var stateNames = Array.prototype.slice.call(arguments);	
 
 			// e.g. stateNames === ['addingComments','editingDescription','assigning']
-			angular.forEach(stateNames, function(name) {
+			utils.forEach(stateNames, function(name) {
 
 				// get the currently looped State
 				// e.g. 'addingComments'
@@ -564,7 +611,7 @@
 				// in the currently looped State's $exclusiveOf array,
 				// push all the other State objects
 				// e.g. $exclusiveOf === [State, State]
-				angular.forEach(exclusiveOf, function(stateName) {
+				utils.forEach(exclusiveOf, function(stateName) {
 					current.$exclusiveOf.push(this.states.filter(function(state) {
 						return state.$name === stateName;
 					})[0]);
@@ -580,7 +627,7 @@
 				parentState = this.states.filter(filter)[0];
 
 				if(config.children[parentStateName].constructor === Array) {
-					angular.forEach(config.children[parentStateName],pushToChildren.bind(this));
+					utils.forEach(config.children[parentStateName],pushToChildren.bind(this));
 				} else {
 					pushToChildren(config.children[parentStateName]);	
 				}
@@ -605,57 +652,31 @@
 		// useful for debugging to see all of the current models being used in the group
 		var models = [];
 		
-		angular.forEach(this.states,function(state) {
+		utils.forEach(this.states,function(state) {
 			models.push(state.$model);
 		});
 		
 		return models;
 	}
 
-	win.StateGroup = StateGroup;
-})(angular,State,window);
+	dependencies.StateGroup = StateGroup;
+})(stateManagerDependencies);
 
 /*
-	module for angular-state-manager
+	state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+	
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(angular) {
+(function(dependencies) {
 	'use strict';
-	
-	angular.module('stateManager',[]);
-})(angular);
-/*
-	angular-state-manager
 
-	(C) 2015 Joshua Beam
-
-	v0.7.1
-	Changes:	1. Major syntax change
-					e.g.	vm.states = stateManager.group('groupName');
-					e.g.	vm.states().state(function() {
-								return {
-									// state properties
-								};
-							});
-				2. Added stateManager.getAllGroups
-				3. Added array to hold all groups
-				4. Removed State and StateGroup from exports
-				5. Separated into modules
-	
-	joshua.a.beam@gmail.com
-	
-	(MIT) License
-*/
-;(function(angular,StateGroup,win) {
-	'use strict';
-	
-	angular.module('stateManager')
-		.factory('stateManager',stateManager);
+	var StateGroup = dependencies.StateGroup;
 
 	function stateManager() {
 		var groups = [];
@@ -679,4 +700,52 @@
 			return this.groups;	
 		}
 	}
-})(angular,window.StateGroup,window);
+
+	dependencies.stateManager = stateManager;
+})(stateManagerDependencies);
+/*
+	module for angular-state-manager
+	
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam	
+	
+	joshua.a.beam@gmail.com
+	
+	(MIT) License
+*/
+;(function(angular) {
+	'use strict';
+	
+	angular.module('stateManager',[]);
+})(angular);
+/*
+	angular-state-manager
+
+	(c) 2015 Joshua Beam
+
+	v0.7.2
+	Changes:	1. Major syntax change
+					e.g.	vm.states = stateManager.group('groupName');
+					e.g.	vm.states().state(function() {
+								return {
+									// state properties
+								};
+							});
+				2. Added stateManager.getAllGroups
+				3. Added array to hold all groups
+				4. Removed State and StateGroup from exports
+				5. Separated into modules
+	
+	github.com/joshbeam
+
+	joshua.a.beam@gmail.com
+	
+	(MIT) License
+*/
+;(function(module,stateManager) {
+	'use strict';
+
+	module.factory('stateManager',stateManager);
+
+})(angular.module('stateManager'),stateManagerDependencies.stateManager);

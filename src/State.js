@@ -1,14 +1,18 @@
 /*
-	'State' for angular-state-manager
+	State for angular-state-manager
 	
-	(C) 2015 Joshua Beam
+	(c) 2015 Joshua Beam
+
+	github.com/joshbeam
 	
 	joshua.a.beam@gmail.com
 	
 	(MIT) License
 */
-;(function(angular,utils,win) {
+;(function(dependencies) {
 	'use strict';
+
+	var utils = dependencies.utils;
 
 	State.prototype = {
 		get: stateGet,
@@ -94,14 +98,14 @@
 		}
 		
 		// stop all states that are exclusive of this state
-		angular.forEach(this.$exclusiveOf,function(state) {
+		utils.forEach(this.$exclusiveOf,function(state) {
 			if(state.isActive()) {
 				state.stop();
 			}
 		});
 		
 		// 'reset' (stop) all children states
-		angular.forEach(this.$children,function(childState) {
+		utils.forEach(this.$children,function(childState) {
 			if(childState.isActive()) {
 				childState.stop();
 			}
@@ -279,7 +283,7 @@
 			... .and({remove: 'param'}, {sayHi: 'param'});
 		*/
 		
-		angular.forEach(arguments, function(arg) {
+		utils.forEach(arguments, function(arg) {
 			if(arg.constructor !== Object) {
 				if(arg in this.$auxillary) {
 					this.$auxillary[arg].call(this,this.$subject);	
@@ -300,6 +304,6 @@
 		}.bind(this));
 	}
 
-	win.State = State;
+	dependencies.State = State;
 
-})(angular,utils,window);
+})(stateManagerDependencies);
