@@ -162,7 +162,7 @@
 		this.$model = '';
 		this.$exclusiveOf = [];
 		this.$children = [];
-		this.$auxillary = config.auxillary || null;
+		this.$and = config.and || null;
 		this.$scope = {};
 	}
 
@@ -409,10 +409,10 @@
 			... .and({remove: 'param'}, {sayHi: 'param'});
 		*/
 		
-		utils.forEach(arguments, function(arg) {
+		utils.forEach([].slice.call(arguments), function(arg) {
 			if(arg.constructor !== Object) {
-				if(arg in this.$auxillary) {
-					this.$auxillary[arg].call(this,this.$subject);	
+				if(arg in this.$and) {
+					this.$and[arg].call(this,this.$subject);	
 				}
 			} else if (arg.constructor === Object) {
 				for(var fn in arg) {
@@ -424,7 +424,7 @@
 					arg[fn].unshift(this.$subject);
 					
 					// call the auxillary function with subject and any additional params
-					this.$auxillary[fn].apply(this,arg[fn]);	
+					this.$and[fn].apply(this,arg[fn]);	
 				}
 			}
 		}.bind(this));
@@ -471,7 +471,7 @@
 		// stateManager.groups.push(this);
 		
 		return function(stateName) {
-			if(!!stateName) {
+			if(!!stateName && stateName !== '') {
 				return this.states.filter(function(state) {
 					return state.$name === stateName;
 				})[0];	
@@ -726,18 +726,8 @@
 
 	(c) 2015 Joshua Beam
 
-	v0.7.2
-	Changes:	1. Major syntax change
-					e.g.	vm.states = stateManager.group('groupName');
-					e.g.	vm.states().state(function() {
-								return {
-									// state properties
-								};
-							});
-				2. Added stateManager.getAllGroups
-				3. Added array to hold all groups
-				4. Removed State and StateGroup from exports
-				5. Separated into modules
+	v0.8.0
+	Changes:	1. .auxillary() renamed to .and() to be more consistent
 	
 	github.com/joshbeam
 
