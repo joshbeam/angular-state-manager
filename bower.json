@@ -1,10 +1,17 @@
 {
   "name": "angular-state-manager",
+  "description": "Create a separate layer for managing states, independent of routes",
+  "keywords": ["angular","state","manager","routes","UI","MVC"],
   "version": "0.8.0",
+  "main": "dist/state-manager.js",
   "homepage": "https://github.com/joshbeam/angular-state-manager",
   "authors": [
-    "Josh Beam"
+    "Josh Beam <joshua.a.beam@gmail.com> (http://careers.stackoverflow.com/joshbeam)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/joshbeam/angular-state-manager.git"
+  },
   "license": "MIT",
   "private": true,
   "ignore": [
