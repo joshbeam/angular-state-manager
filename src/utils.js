@@ -56,20 +56,41 @@
 	}
 
 	function setStringModelToModel(scope, string, val) {
-		var m = scope, keys, prevObject;
+		var model = scope, keys, prevObject;
 		
 		// has to start with $scope.models, or vm.models, or whatever
 		
 		if(typeof string === 'string') {
 			keys = string.split('.');
-			
-			// remove ControllerAs prefix, because we don't need it
-			// the user still uses it though in the string declaration, because it creates a namespace
+			/*
+				Remove ControllerAs prefix, because we don't need it
+				The user still uses it though in the string declaration, because it creates a namespace
+				e.g. 'vm.models.someModel' ==> ['models','someModel'];
+			*/
+
 			keys.shift();
 
 			if(keys.length <2) {
 				throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);	
 			}
+
+			/*
+				This rebuilds the scope objects
+
+				Example:
+					Using this array: ['models','someModel']
+					And this value: 'hello world' (which was passed in as val to this setStringModelToModel)
+
+					It builds this:
+						// inside our scope object
+						models: {
+							someModel: 'hello world'
+						}
+
+				#potential-bug
+					This will reset the entire 'models' object inside our scope EVERY SINGLE TIME
+					Potential conflicts?
+			*/
 
 			function build(o,k,v) {
 				var temp;
@@ -82,7 +103,7 @@
 				}
 			}
 
-			build(m,keys,val);
+			build(model,keys,val);
 		} else {
 			throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);
 		}
