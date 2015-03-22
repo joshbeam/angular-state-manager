@@ -94,7 +94,7 @@
 		this.$model = model;
 
 		if(model.constructor !== Object && typeof model === 'string') {
-			resolvedModel = utils.getStringModelToModel(this, this.$scope, model);
+			resolvedModel = utils.getStringModelToModel.call(this, this.$scope, model);
 		}
 		
 		// stop all states that are exclusive of this state
@@ -213,7 +213,7 @@
 		}
 					
 		// need to re-resolve the model to see the updates from the scope
-		var resolvedModel = utils.getStringModelToModel(this, this.$scope, this.$model);
+		var resolvedModel = utils.getStringModelToModel.call(this, this.$scope, this.$model);
 		
 		if(this.$done !== null) {
 			this.$done(this.$subject,resolvedModel,event);

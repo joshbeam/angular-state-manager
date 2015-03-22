@@ -3,8 +3,9 @@
 
 	(c) 2015 Joshua Beam
 
-	v0.8.0
+	v0.8.1
 	Changes:	1. .auxillary() renamed to .and() to be more consistent
+				2. used recursion instead of loop in utils.setStringModeltoModel
 	
 	github.com/joshbeam
 

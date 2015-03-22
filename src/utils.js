@@ -31,8 +31,8 @@
 		}
 	};
 
-	function getStringModelToModel(thisArg, scope, string) {
-		var m = false, keys;
+	function getStringModelToModel(scope, string) {
+		var model = false, keys;
 		
 		if(typeof string === 'string') {
 			keys = string.split('.');
@@ -41,18 +41,18 @@
 			keys.shift();
 
 			forEach(keys,function(key) {
-				if(!!m) {
-					m = m[key];	
+				if(!!model) {
+					model = model[key];	
 				} else {
-					m = scope[key];	
+					model = scope[key];	
 				}
-			}.bind(thisArg));
+			}.bind(this));
 		}
 		
 		//m will end up being undefined, false, or an object
 		//if it is undefined or false, keep it false
 		//otherwise, return m
-		return !!m ? m : false;	
+		return !!model ? model : false;	
 	}
 
 	function setStringModelToModel(scope, string, val) {
@@ -62,28 +62,29 @@
 		
 		if(typeof string === 'string') {
 			keys = string.split('.');
+			
 			// remove ControllerAs prefix, because we don't need it
 			// the user still uses it though in the string declaration, because it creates a namespace
 			keys.shift();
+
 			if(keys.length <2) {
 				throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);	
 			}
 
-			for(var i = 0; i<keys.length; i++) {
-				if(i === 0) {
-					m[keys[0]] = {};
-					prevObject = m[keys[0]];
-				}
-				
-				if(i > 0 && i < keys.length - 1) {
-					prevObject[keys[i]] = {};
-					prevObject = prevObject[keys[i]];
-				}
-				
-				if(i === keys.length - 1) {
-					prevObject[keys[i]] = val;
+			function build(o,k,v) {
+				var temp;
+
+				if(k.length > 1) {
+					temp = o[k.shift()] = {};
+					build(temp,k,v);
+				} if (k.length === 1) {
+					o[k.shift()] = v;
 				}
 			}
+
+			build(m,keys,val);
+		} else {
+			throw new SyntaxError(utils.constants.errors.syntax.ILLEGAL_MODEL_STRING);
 		}
 	}
 
