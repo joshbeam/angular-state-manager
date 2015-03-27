@@ -1,5 +1,48 @@
 #angular-state-manager
 
+Stop the AngularJS spaghetti code! **Instead of this:**
+
+```javascript
+// random variables all over the place
+$scope.adding = false;
+
+$scope.startAddingItem = function() {
+	$scope.adding = true;
+}
+
+$scope.stopAddingItem = function(name) {
+	myService.add(name);
+	$scope.adding = false;
+}
+```
+
+**Write this:**
+```javascript
+// use controllerAs sytnax
+var vm = this;
+
+// create a new group of "states"
+vm.states = stateManager.group('items');
+
+vm.states()
+	// here, we have a state where we're adding items
+	.state('adding',function() {
+		return {
+			// when we're done, the only thing we need to do is update myService
+			done: function(subject, model) {
+				myService.add(model);
+			}
+		}
+	})
+	.config(function() {
+		return {
+			scope: vm
+		}
+	});
+```
+
+# Technical Info
+
 **v0.8.1 pre-release**
 
 **Download at:** *dist --> state-manager[.min].js*
@@ -8,9 +51,11 @@
 
 **Browser support:** IE9+, all other modern browsers
 
-<hr>
+# Description
 
 Creates a separate layer for managing states within a controller.
+
+# Using it
 
 <a href="https://github.com/joshbeam/Basket">Example app</a> using stateManager (see it <a href="http://joshbeam.github.io/Basket">live</a>)
 
