@@ -41,7 +41,14 @@ vm.states()
 	});
 ```
 
-# Technical Info
+# Content
+
+1. <a href="#technical-info">Technical Info</a>
+2. <a href="#description">Description</a>
+3. <a href="#using-it">Using It</a>
+
+
+## Technical Info
 
 **v0.8.1 pre-release**
 
@@ -51,11 +58,11 @@ vm.states()
 
 **Browser support:** IE9+, all other modern browsers
 
-# Description
+## Description
 
 Creates a separate layer for managing states within a controller.
 
-# Using it
+## Using it
 
 <a href="https://github.com/joshbeam/Basket">Example app</a> using stateManager (see it <a href="http://joshbeam.github.io/Basket">live</a>)
 
