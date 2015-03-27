@@ -49,7 +49,6 @@ vm.states()
 
 ## Technical Info
 
-
 **v0.8.1 pre-release**
 
 **Download at:** *dist --> state-manager[.min].js*
