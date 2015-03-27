@@ -47,8 +47,8 @@ vm.states()
 2. <a href="#description">Description</a>
 3. <a href="#using-it">Using It</a>
 
-
 ## Technical Info
+
 
 **v0.8.1 pre-release**
 
