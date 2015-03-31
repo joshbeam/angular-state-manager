@@ -26,8 +26,9 @@ vm.states = stateManager.group('items');
 
 vm.states()
 	// here, we have a state where we're adding items
-	.state('adding',function() {
+	.state(function() {
 		return {
+			name: 'adding',
 			// when we're done, the only thing we need to do is update myService
 			done: function(subject, model) {
 				myService.add(model);

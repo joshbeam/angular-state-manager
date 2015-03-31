@@ -24,4 +24,20 @@ gulp.task('scripts', function() {
 		.pipe(gulp.dest('dist'));
 });
 
-gulp.task('default',['scripts']);
+gulp.task('noAngular', function() {
+	return gulp.src([
+		'src/state-manager.dependencies.js',
+		'src/utils.js',
+		'src/State.js',
+		'src/StateGroup.js',
+		'src/state-manager.js'
+		])
+		.pipe(concat('state-manager.vanilla.js'))
+		.pipe(gulp.dest('dist/no_angular'))
+		.pipe(rename('state-manager.vanilla.min.js'))
+		.pipe(uglify())
+		.pipe(header('/* state-manager ||| (c) 2015 Joshua Beam ||| github.com/joshbeam ||| joshua.a.beam@gmail.com ||| (MIT) License */'))
+		.pipe(gulp.dest('dist/no_angular'));
+});
+
+gulp.task('default',['scripts','noAngular']);
